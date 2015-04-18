@@ -15,15 +15,11 @@ var port = process.env.OPENSHIFT_NODEJS_PORT || 8080;
 app.use(bodyparser.json());
 app.use(bodyparser.urlencoded({ extended: true }));
 app.use(multer());
-app.use(express.static(__dirname + '/public'));
 app.use(session({ secret: 'this is the secret' }));
 app.use(cookieparser());
+app.use(passport.initialize());
 app.use(passport.session());
-
-passport.use(new LocalStrategy(
-function (username, password, done) {
-    return done(null, false, { message: 'Unable to login' });
-}));
+app.use(express.static(__dirname + '/public'));
 
 // default to a 'localhost' configuration:
 var connection_string = 'localhost/project';
@@ -36,10 +32,65 @@ if (process.env.OPENSHIFT_MONGODB_DB_PASSWORD) {
     process.env.OPENSHIFT_APP_NAME;
 }
 
-mongoose.connect('mongodb://' + connection_string);
+var db = mongoose.connect('mongodb://' + connection_string);
+
+var UserSchema = new mongoose.Schema({
+    username: String,
+    password: String
+});
+
+var UserModel = mongoose.model("UserModel", UserSchema);
+
+
+
+passport.use(new LocalStrategy(
+function (username, password, done) {
+    UserModel.findOne({ username: username, password: password }, function (err, user) {
+        if (user) {
+            return done(null, user)
+        }
+        return done(null, false, { message: 'Unable to login' });
+    });
+}));
+
+passport.serializeUser(function (user, done) {
+    done(null, user);
+});
+
+passport.deserializeUser(function (user, done) {
+    done(null, user);
+});
 
 app.post("/login", passport.authenticate('local'), function (req, res) {
     res.json(req.user);
-})
+});
+
+app.get("/loggedin", function (req, res) {
+    res.send(req.isAuthenticated() ? req.user : '0');
+});
+
+app.post("/logout", function (req, res) {
+    req.logOut();
+    res.send(200);
+});
+
+app.post("/register", function (req, res) {
+    var newUser = req.body;
+    UserModel.findOne({username: newUser.username}, function(err, user) {
+        if(user) {
+            res.json(null);
+            return;
+        } else {
+            var newUser = new UserModel(req.body);
+            newUser.save(function(err, user) {
+                req.login(user, function(err) {
+                    if(err) { return next(err); }
+                    res.json(user);
+                });
+            });
+        }
+    });
+
+});
 
 app.listen(port, ip);
