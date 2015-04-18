@@ -11,6 +11,10 @@ app.controller('ShowController', function ($scope, $http, $location, $rootScope)
     }
 });
 
+app.controller('ProfileController', function ($scope, $http, $location, $rootScope) {
+    
+});
+
 app.controller('LoginController', function ($scope, $http, $location, $rootScope) {
     $scope.login = function (user) {
         $http.post('/login', user)
@@ -18,7 +22,10 @@ app.controller('LoginController', function ($scope, $http, $location, $rootScope
             console.log(response);
             $rootScope.currentUser = response;
             $location.url("/profile");
-        });
+        })
+        .error(function (response) {
+            $scope.errorMessage = "Error: Incorrect login info."
+        })
     };
 });
 
@@ -28,6 +35,10 @@ app.controller('RegisterController', function ($scope, $http, $location, $rootSc
         .success(function (response) {
             console.log(user);
             $rootScope.currentUser = user;
+            $location.url("/profile");
+        })
+        .error(function (response) {
+            $scope.errorMessage = response;
         });
     };
 });
@@ -48,6 +59,7 @@ app.config(['$routeProvider',
         }).
         when('/profile', {
             templateUrl: '../templates/profile.html',
+            controller: 'ProfileController',
             resolve: {
                 logincheck: checkLogin
             }

@@ -78,8 +78,7 @@ app.post("/register", function (req, res) {
     var newUser = req.body;
     UserModel.findOne({username: newUser.username}, function(err, user) {
         if(user) {
-            res.json(null);
-            return;
+            res.status(401).send('Error: username is already in use');
         } else {
             var newUser = new UserModel(req.body);
             newUser.save(function(err, user) {
