@@ -9,10 +9,58 @@ app.controller('ShowController', function ($scope, $http, $location, $rootScope)
             $location.url("/main");
         });
     }
+
+    $scope.searchUser = function (user) {
+        $location.url("/profile/" + user);
+    }
 });
 
-app.controller('ProfileController', function ($scope, $http, $location, $rootScope) {
-    
+app.controller('SearchController', function ($scope, $http, $location, $rootScope) {
+
+});
+
+app.controller('ProfileController', function ($scope, $http, $location, $rootScope, $routeParams) {
+    $http.get('/user/' + $routeParams.username)
+    .success(function (user) {
+        if (!user) {
+            $scope.errorMessage = "User not found";
+        } else {
+            $scope.profileUser = user;
+        }
+        setButtons();
+    })
+    .error(function (data) {
+        $scope.errorMessage = data;
+    });
+
+    $scope.addFriend = function () {
+        $http.put('/friend', $scope.profileUser)
+        .success(function (response) {
+            $rootScope.currentUser = response;
+            setButtons();
+        });
+    };
+
+    $scope.unfriend = function () {
+        $http.put('/unfriend', $scope.profileUser)
+        .success(function (response) {
+            $rootScope.currentUser = response;
+            setButtons();
+        });
+    };
+
+    // check if logged in user is already following profile user, and not ourselves
+    function setButtons() {
+        if ($routeParams.username != $rootScope.currentUser.username) {
+            if ($rootScope.currentUser.friends.indexOf($routeParams.username) == -1) {  // we aren't following them yet, show friend button
+                $scope.friendbutton = true;
+                $scope.unfriendbutton = false;
+            } else {
+                $scope.unfriendbutton = true;
+                $scope.friendbutton = false;
+            }
+        }
+    }
 });
 
 app.controller('LoginController', function ($scope, $http, $location, $rootScope) {
@@ -57,12 +105,16 @@ app.config(['$routeProvider',
             templateUrl: '../templates/login.html',
             controller: 'LoginController'
         }).
-        when('/profile', {
+        when('/profile/:username', {
             templateUrl: '../templates/profile.html',
             controller: 'ProfileController',
             resolve: {
                 logincheck: checkLogin
             }
+        }).
+        when('/search', {
+            templateUrl: '../templates/search.html',
+            controller: 'SearchController'
         }).
         otherwise({
             redirectTo: '/main'

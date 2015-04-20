@@ -1,1 +1,19 @@
-﻿<h1>{{currentUser.username}}'s profile</h1>
+﻿<div class="alert alert-danger" role="alert" ng-show="errorMessage">
+    <span class="glyphicon glyphicon-exclamation-sign" aria-hidden="true"></span>
+    {{errorMessage}}
+</div>
+
+<div ng-show="profileUser">
+    <h1>
+        {{profileUser.username}}'s profile
+        <button type="button" class="btn btn-primary pull-right" ng-show="friendbutton" ng-click="addFriend()">Add as friend</button>
+        <button type="button" class="btn btn-danger pull-right" ng-show="unfriendbutton" ng-click="unfriend()">Remove friend</button>
+    </h1>
+    <hr />
+    <h2>{{profileUser.username}}'s events ({{(profileUser.events).length}})</h2>
+    <hr />
+    <h2>{{profileUser.username}}'s friends ({{(profileUser.friends).length}})</h2>
+    <div class="col-sm-2" ng-repeat="friend in profileUser.friends">
+        <a href="#/profile/{{friend}}">{{friend}}</a>
+    </div>
+</div>
