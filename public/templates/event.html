@@ -1,0 +1,39 @@
+﻿<div class="alert alert-danger" role="alert" ng-show="errorMessage">
+    <span class="glyphicon glyphicon-exclamation-sign" aria-hidden="true"></span>
+    {{errorMessage}}
+</div>
+
+<div ng-show="eventDetails">
+    <h1>
+        Event Details
+        <button type="button" class="btn btn-primary pull-right" ng-show="addeventbutton" ng-click="addEvent()">Add to My Events</button>
+        <button type="button" class="btn btn-danger pull-right" ng-show="removeeventbutton" ng-click="removeEvent()">Remove from My Events</button>
+    </h1>
+    <hr />
+    <div class="col-sm-6">
+        <ul class="list-unstyled" ng-repeat="artist in eventDetails.Artists">
+            <li><h2>{{artist.Name}}</h2></li>
+        </ul>
+    </div>
+    <div class="col-sm-6">
+        <h2>Venue Info</h2>
+        <h4>{{eventDetails.Venue.Name}}</h4>
+        <p>
+            {{eventDetails.Venue.Address}}<br />
+            {{eventDetails.Venue.City}}, {{eventDetails.Venue.StateCode}} {{eventDetails.Venue.ZipCode}}
+        </p>
+        <map id="eventmap" center="{{mapLocation}}" zoom="15"></map>
+    </div>
+    <div class="col-sm-6">
+        <h2>People attending ({{attendees.length}})</h2>
+        <ul class="list-unstyled" ng-repeat="attendee in attendees">
+            <li><a href="#/profile/{{attendee.username}}">{{attendee.username}}</a></li>
+        </ul>
+    </div>
+    <div class="col-sm-6">
+        <h2>Friends attending ({{friendsAttending.length}})</h2>
+        <ul class="list-unstyled" ng-repeat="friend in friendsAttending">
+            <li><a href="#/profile/{{friend.username}}">{{friend.username}}</a></li>
+        </ul>
+    </div>
+</div>

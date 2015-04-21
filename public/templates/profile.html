@@ -11,6 +11,30 @@
     </h1>
     <hr />
     <h2>{{profileUser.username}}'s events ({{(profileUser.events).length}})</h2>
+    <div ng-show="eventList.length">
+        <table class="table table-striped">
+            <thead>
+                <tr>
+                    <th>Date</th>
+                    <th>Event</th>
+                    <th>Venue</th>
+                    <th>City</th>
+                    <th>Details</th>
+                </tr>
+            </thead>
+            <tr ng-repeat="event in eventList">
+                <td>{{event.Date.substring(0,10)}}</td>
+                <td>
+                    <ul class="list-unstyled" ng-repeat="artist in event.Artists">
+                        <li>{{artist.Name}}</li>
+                    </ul>
+                </td>
+                <td>{{event.Venue.Name}}</td>
+                <td>{{event.Venue.City}}, {{event.Venue.StateCode}}</td>
+                <td><a href="#/event/{{event.Id}}">Event Page</a></td>
+            </tr>
+        </table>
+    </div>
     <hr />
     <h2>{{profileUser.username}}'s friends ({{(profileUser.friends).length}})</h2>
     <div class="col-sm-2" ng-repeat="friend in profileUser.friends">

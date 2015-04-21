@@ -38,7 +38,7 @@ var UserSchema = new mongoose.Schema({
     username: String,
     password: String,
     friends: [String],
-    events: [String]
+    events: [Number]
 });
 
 var UserModel = mongoose.model("UserModel", UserSchema);
@@ -134,6 +134,41 @@ app.put('/unfriend', function (req, res) {
             res.send(req.user);
         });
     });
-})
+});
+
+// add event to my events
+app.put('/addevent', function (req, res) {
+    var newEvent = req.body;
+    UserModel.findOne({ username: req.user.username }, function (err, user) {
+        var userEvents = user.events;
+        userEvents.push(newEvent.Id);
+        UserModel.update({ username: req.user.username }, { "events": userEvents }, function (err, user) {
+            req.user.events = userEvents;
+            res.send(req.user);
+        });
+    });
+});
+
+// remove event from my events
+app.put('/removeevent', function (req, res) {
+    var newRemoval = req.body;
+    UserModel.findOne({ username: req.user.username }, function (err, user) {
+        var userEvents = user.events;
+        var eventIndex = userEvents.indexOf(newRemoval);
+        userEvents.splice(eventIndex, 1);
+        UserModel.update({ username: req.user.username }, { "events": userEvents }, function (err, user) {
+            req.user.events = userEvents;
+            res.send(req.user);
+        });
+    });
+});
+
+app.get('/attendees/:eventid', function (req, res) {
+    var attendees = []
+    UserModel.find({ "events": parseInt(req.params.eventid) }, function (err, user) {
+        res.json(user);
+    });
+});
+
 
 app.listen(port, ip);

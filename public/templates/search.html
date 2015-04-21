@@ -1,1 +1,41 @@
 ﻿<h1>Search Events</h1>
+<br />
+<form class="form-horizontal">
+    <div class="form-group">
+        <label for="zip-code" class="col-sm-2 control-label">Zip Code</label>
+        <div class="col-sm-10">
+            <input type="text" class="form-control" id="zip-code" placeholder="Search events by zip code" ng-model="searchZip">
+        </div>
+    </div>
+    <div class="form-group">
+        <div class="col-sm-offset-2 col-sm-10">
+            <button type="submit" class="btn btn-default" ng-click="searchEvents(searchZip)">Search</button>
+        </div>
+    </div>
+</form>
+
+<div ng-show="searchResults">
+    <h2>Results</h2>
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th>Date</th>
+                <th>Event</th>
+                <th>Venue</th>
+                <th>City</th>
+                <th>Details</th>
+            </tr>
+        </thead>
+        <tr ng-repeat="event in searchResults.Events">
+            <td>{{event.Date.substring(0,10)}}</td>
+            <td>
+                <ul class="list-unstyled" ng-repeat="artist in event.Artists">
+                    <li>{{artist.Name}}</li>
+                </ul>
+            </td>
+            <td>{{event.Venue.Name}}</td>
+            <td>{{event.Venue.City}}, {{event.Venue.StateCode}}</td>
+            <td><a href="#/event/{{event.Id}}">Event Page</a></td>
+        </tr>
+    </table>
+</div>

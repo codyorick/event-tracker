@@ -1,4 +1,6 @@
-﻿var app = angular.module("ShowTrackerApp", ["ngRoute"]);
+﻿var app = angular.module("ShowTrackerApp", ["ngRoute", "ngMap"]);
+
+var JAMBASE_KEY = 'jgtpnr2qu4tg3xkwwmrh4unh';
 
 
 app.controller('ShowController', function ($scope, $http, $location, $rootScope) {
@@ -16,6 +18,67 @@ app.controller('ShowController', function ($scope, $http, $location, $rootScope)
 });
 
 app.controller('SearchController', function ($scope, $http, $location, $rootScope) {
+    $scope.searchEvents = function (zipcode) {
+        var api = "http://api.jambase.com/events?zipCode=" + zipcode + "&page=0&api_key=" + JAMBASE_KEY;
+        $http.get(api)
+        .success(function (response) {
+            $scope.searchResults = response;
+        });
+    }
+});
+
+app.controller('EventController', function ($scope, $http, $location, $rootScope, $routeParams) {
+    // get event info on page load
+    $http.get('http://api.jambase.com/events?id=' + $routeParams.eventid + '&api_key=' + JAMBASE_KEY)
+    .success(function (response) {
+        $scope.eventDetails = response;
+        $scope.mapLocation = parseFloat($scope.eventDetails.Venue.Latitude) + "," + parseFloat($scope.eventDetails.Venue.Longitude);
+    })
+    .error(function (data) {
+        $scope.errorMessage = 'Event not found.';
+    });
+
+    // get event and friend attendees
+    $http.get('/attendees/' + $routeParams.eventid)
+    .success(function (response) {
+        $scope.attendees = response;
+        friendsAttending = [];
+        for (var i = 0; i < $scope.attendees.length; i++) {
+            if ($rootScope.currentUser.friends.indexOf($scope.attendees[i].username) != -1) {  // this attendee is our friend
+                friendsAttending.push($scope.attendees[i]);
+            }
+        };
+        $scope.friendsAttending = friendsAttending;
+    });
+
+    setButtons();
+
+    $scope.addEvent = function () {
+        $http.put('/addevent', $scope.eventDetails)
+        .success(function (response) {
+            $rootScope.currentUser = response;
+            setButtons();
+        });
+    };
+
+    $scope.removeEvent = function () {
+        $http.put('/removeevent', $scope.eventDetails)
+        .success(function (response) {
+            $rootScope.currentUser = response;
+            setButtons();
+        });
+    };
+
+    // set "add event" or "remove event" buttons appropriately
+    function setButtons() {
+        if ($rootScope.currentUser.events.indexOf(parseInt($routeParams.eventid)) == -1) {  // we haven't added the event yet
+            $scope.addeventbutton = true;
+            $scope.removeeventbutton = false;
+        } else {
+            $scope.removeeventbutton = true;
+            $scope.addeventbutton = false;
+        }
+    };
 
 });
 
@@ -26,6 +89,14 @@ app.controller('ProfileController', function ($scope, $http, $location, $rootSco
             $scope.errorMessage = "User not found";
         } else {
             $scope.profileUser = user;
+            eventlist = [];
+            for (var i = 0; i < user.events.length; i++) {
+                $http.get('http://api.jambase.com/events?id=' + user.events[i] + '&api_key=' + JAMBASE_KEY)
+                .success(function (event) {
+                    eventlist.push(event);
+                });
+            };
+            $scope.eventList = eventlist;
         }
         setButtons();
     })
@@ -108,6 +179,13 @@ app.config(['$routeProvider',
         when('/profile/:username', {
             templateUrl: '../templates/profile.html',
             controller: 'ProfileController',
+            resolve: {
+                logincheck: checkLogin
+            }
+        }).
+        when('/event/:eventid', {
+            templateUrl: '../templates/event.html',
+            controller: 'EventController',
             resolve: {
                 logincheck: checkLogin
             }
